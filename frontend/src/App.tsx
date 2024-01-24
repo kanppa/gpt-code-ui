@@ -5,12 +5,16 @@ import Chat, { WaitingStates } from "./components/Chat";
 import React, { useState, useEffect  } from "react";
 import Config from "./config";
 import { useLocalStorage } from "usehooks-ts";
+import { v4 as uuidv4 } from "uuid";
 
 export type MessageDict = {
   text: string;
   role: string;
   type: string;
 };
+const clientId: string = (() => {
+    return uuidv4();
+})();
 
 function App() {
   const COMMANDS = ["reset"];
@@ -58,7 +62,7 @@ function App() {
   const chatScrollRef = React.useRef<HTMLDivElement>(null);
 
   const submitCode = async (code: string) => {
-    fetch(`${Config.API_ADDRESS}/api`, {
+    fetch(`${Config.API_ADDRESS}/api/${clientId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -126,7 +130,7 @@ function App() {
         setWaitingForSystem(WaitingStates.Idle);
         return;
       }
-      
+
       if (!!code) {
         submitCode(code);
         setWaitingForSystem(WaitingStates.RunningCode);
@@ -145,8 +149,8 @@ function App() {
     if(document.hidden){
       return;
     }
-    
-    let response = await fetch(`${Config.API_ADDRESS}/api`);
+
+    let response = await fetch(`${Config.API_ADDRESS}/api/${clientId}`);
     let data = await response.json();
     data.results.forEach(function (result: {value: string, type: string}) {
       if (result.value.trim().length == 0) {
